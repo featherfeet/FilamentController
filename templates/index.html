@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" lang="en" />
+		<link rel="stylesheet" href="{{ url_for('static', filename = 'stylesheets/index.css') }}">
+		<title>
+			J2010 Filament Controller Web Interface
+		</title>
+		<h1>
+			J2010 Filament Controller Web Interface
+		</h1>
+	</head>
+	<body>
+		{% raw %}
+			<div id="vue_div">
+				<p>
+					Control status: {{ computer_control ? "Computer Control" : "Manual (Knob) Control" }}
+				</p>
+				<p>
+					Active users: {{ active_users }}
+				</p>
+				<div v-if="computer_control">
+					<button v-on:click="filamentOn">On</button>
+					<br>
+					<button v-on:click="filamentOff">Off</button>
+					<p>
+						Status: {{ filament_status_message }}
+					</p>
+				</div>
+			</div>
+		{% endraw %}
+		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/vue.global.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/axios.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/index.js') }}"></script>
+		<noscript>
+			This page requires JavaScript to be enabled. Please allow JavaScript in your browser for this page.
+		</noscript>
+	</body>
+</html>
