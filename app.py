@@ -91,6 +91,8 @@ def setup():
 	if request.method == "GET":
 		return render_template("setup.html")
 	elif request.method == "POST":
+		if state != OFF:
+			return make_response("Error: You cannot change the settings while the filament is on, ramping up, or ramping down. Switch the filament off before attempting to modify settings.", 400)
 		try:
 			max_virtual_knob_value = float(request.form["max_virtual_knob_value"])
 		except:
