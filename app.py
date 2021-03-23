@@ -13,9 +13,11 @@ import board
 import busio
 import adafruit_mcp4725
 i2c = busio.I2C(board.SCL, board.SDA)
+dac_lock = threading.RLock()
 dac = adafruit_mcp4725.MCP4725(i2c)
 
-dac.raw_value = 0 # Current value of the DAC.
+with dac_lock:
+	dac.raw_value = 0 # Current value of the DAC.
 max_dac_value = int(open("./max_dac_value.txt").read().replace('\n', ''))  # Maximum allowed value of the DAC.
 on_button_pressed = False # Whether the ON button was just pressed, either on the webpage or the physical buttons.
 off_button_pressed = False # Whether the OFF button was just pressed, either on the webpage or the physical buttons.
@@ -31,11 +33,13 @@ state = OFF # Current state of the controller state machine.
 # This function runs in a separate thread and handles actually controlling the filament.
 def controller_thread():
 	global dac
+	global dac_lock
 	global state
 	global on_button_pressed
 	global off_button_pressed
 	while True:
-		print(dac.raw_value)
+		with dac_lock:
+			print(dac.raw_value)
 		if state == OFF:
 			if on_button_pressed:
 				state = RAMP_UP
@@ -45,10 +49,11 @@ def controller_thread():
 		elif state == RAMP_UP:
 			off_button_pressed = False
 			on_button_pressed = False
-			dac.raw_value += 1
 			time.sleep(float(RAMP_TIME_SECONDS) / (max_dac_value + 1))
-			if dac.raw_value == max_dac_value:
-				state = ON
+			with dac_lock:
+				dac.raw_value += 1
+				if dac.raw_value == max_dac_value:
+					state = ON
 		elif state == ON:
 			if off_button_pressed:
 				state = RAMP_DOWN
@@ -58,10 +63,11 @@ def controller_thread():
 		elif state == RAMP_DOWN:
 			off_button_pressed = False
 			on_button_pressed = False
-			dac.raw_value -= 1
 			time.sleep(float(RAMP_TIME_SECONDS) / (max_dac_value + 1))
-			if dac.raw_value == 0:
-				state = OFF
+			with dac_lock:
+				dac.raw_value -= 1
+				if dac.raw_value == 0:
+					state = OFF
 
 # Function to update the active users' dictionary by adding the specified IP and dropping any IPs that have not made a /status request in ACTIVE_USER_MAX_IDLE_TIME seconds.
 def update_active_users(ip_address):
@@ -137,6 +143,8 @@ def filamentOff():
 # API endpoint to get the current filament control status.
 @app.route("/status")
 def status():
+	global dac
+	global dac_lock
 	global filament_status_message
 	update_active_users(request.remote_addr)
 	if state == ON:
@@ -144,9 +152,11 @@ def status():
 	elif state == OFF:
 		filament_status_message = "Filament is OFF."
 	elif state == RAMP_UP:
-		filament_status_message = "Filament is ramping up ({}% complete)...".format(int(float(dac.raw_value) / max_dac_value * 100))
+		with dac_lock:
+			filament_status_message = "Filament is ramping up ({}% complete)...".format(int(float(dac.raw_value) / max_dac_value * 100))
 	elif state == RAMP_DOWN:
-		filament_status_message = "Filament is ramping down ({}% complete)...".format(int(100 - float(dac.raw_value) / max_dac_value * 100))
+		with dac_lock:
+			filament_status_message = "Filament is ramping down ({}% complete)...".format(int(100 - float(dac.raw_value) / max_dac_value * 100))
 	return make_response(jsonify({"computer_control": computer_control, "filament_status_message": filament_status_message, "active_users": len(active_users), "max_dac_value": max_dac_value, "dac_bits": DAC_BITS}), 200)
 
 if __name__ == "__main__":

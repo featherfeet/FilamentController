@@ -11,7 +11,7 @@ const app = {
 		submitNewSettings: function() {
 			var self = this;
 			var formData = new FormData();
-			formData.append("max_virtual_knob_value", this.max_virtual_knob_value);
+			formData.append("max_virtual_knob_value", parseFloat(self.max_virtual_knob_value));
 			axios({
 				method: "post",
 				url: "/setup",
@@ -33,7 +33,7 @@ const app = {
 	mounted: function() {
 		var self = this;
 		axios.get("/status").then(function(response) {
-			self.max_virtual_knob_value = (response.data.max_dac_value / (Math.pow(2, response.data.dac_bits) - 1)) * 10.0;
+			self.max_virtual_knob_value = ((response.data.max_dac_value / (Math.pow(2, response.data.dac_bits) - 1)) * 10.0).toPrecision(2);
 			self.current_max_dac_value = response.data.max_dac_value;
 		})
 		.catch(function(error) {
