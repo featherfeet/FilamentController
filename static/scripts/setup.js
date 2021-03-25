@@ -32,7 +32,7 @@ const app = {
 	},
 	mounted: function() {
 		var self = this;
-		axios.get("/status").then(function(response) {
+		axios.get("/status", { timeout: 1000 }).then(function(response) {
 			self.max_virtual_knob_value = ((response.data.max_dac_value / (Math.pow(2, response.data.dac_bits) - 1)) * 10.0).toPrecision(2);
 			self.current_max_dac_value = response.data.max_dac_value;
 		})
@@ -45,7 +45,7 @@ const app = {
 			}
 		});
 		setInterval(function() {
-			axios.get("/status").then(function(response) {
+			axios.get("/status", { timeout: 450 } ).then(function(response) {
 				if (self.current_max_dac_value !== response.data.max_dac_value) {
 					self.warning_message = "Warning: Someone else on the system changed the max virtual knob value setting while you were on this page.";
 				}

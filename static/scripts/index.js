@@ -39,7 +39,7 @@ const app = {
 	mounted: function() {
 		var self = this;
 		setInterval(function() {
-			axios.get("/status").then(function(response) {
+			axios.get("/status", { timeout: 450 }).then(function(response) {
 				self.computer_control = response.data.computer_control;
 				self.filament_status_message = response.data.filament_status_message;
 				self.active_users = response.data.active_users;
