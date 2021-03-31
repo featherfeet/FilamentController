@@ -38,6 +38,12 @@ import busio
 import adafruit_mcp4725
 
 # Functions to control the status LED.
+def status_led_off():
+    global red_led_pwm
+    global green_led_pwm
+    red_led_pwm.ChangeDutyCycle(0)
+    green_led_pwm.ChangeDutyCycle(0)
+
 def status_led_solid_red():
     global red_led_pwm
     global green_led_pwm
@@ -89,6 +95,7 @@ green_led_pwm.start(0.0)
 GPIO.setup(CONTROL_MODE_SWITCH_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 if GPIO.input(CONTROL_MODE_SWITCH_PIN) == CONTROL_MODE_PIN_STATE_MANUAL:
     computer_control = False
+    status_led_off()
 GPIO.setup(ON_BUTTON_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(OFF_BUTTON_PIN, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
@@ -98,8 +105,17 @@ def control_switch_interrupt(_):
     time.sleep(0.01) # If you sleep for too long, the RPi.GPIO library will dispatch two ISRs. If it's too short, then the GPIO.input() may read a bouncing switch value. This value seems to work well with the 50 ms debounce.
     if GPIO.input(CONTROL_MODE_SWITCH_PIN) == CONTROL_MODE_PIN_STATE_MANUAL:
         computer_control = False
+        status_led_off()
     else:
         computer_control = True
+        if state == OFF or state == STARTING:
+            status_led_solid_red()
+        elif state == ON:
+            status_led_solid_green()
+        elif state == RAMP_UP:
+            status_led_flash_green()
+        elif state == RAMP_DOWN:
+            status_led_flash_red()
 GPIO.add_event_detect(CONTROL_MODE_SWITCH_PIN, GPIO.BOTH, callback = control_switch_interrupt, bouncetime = 50)
 
 # Interrupt request handler for the on button.
@@ -162,10 +178,12 @@ def controller_thread():
     if dac_value > 0:
         log_action("AUTO", "FILAMENT_OFF", "")
         state = RAMP_DOWN
-        status_led_flash_red()
+        if computer_control:
+            status_led_flash_red()
     else:
         state = OFF
-        status_led_solid_red()
+        if computer_control:
+            status_led_solid_red()
     # Main state machine loop.
     while True:
         if state == OFF:
