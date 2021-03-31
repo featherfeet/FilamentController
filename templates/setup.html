@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" lang="en" />
-		<link rel="stylesheet" href="{{ url_for('static', filename = 'stylesheets/setup.css') }}">
+		<link rel="stylesheet" href="/static/stylesheets/setup.css">
 		<title>
 			J2010 Filament Controller Setup
 		</title>
@@ -29,9 +29,9 @@
 				<input type="submit" value="Submit New Settings" v-on:click="submitNewSettings" />
 			</div>
 		{% endraw %}
-		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/vue.global.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/axios.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename = 'scripts/setup.js') }}"></script>
+		<script type="text/javascript" src="/static/scripts/vue.global.js"></script>
+		<script type="text/javascript" src="/static/scripts/axios.min.js"></script>
+		<script type="text/javascript" src="/static/scripts/setup.js"></script>
 		<noscript>
 			This page requires JavaScript to be enabled. Please allow JavaScript in your browser for this page.
 		</noscript>
