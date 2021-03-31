@@ -71,7 +71,7 @@ RAMP_DOWN = 4
 state = STARTING # Current state of the controller state machine.
 
 dac_value = 0 # Current value of the DAC (will be initialized by the controller thread).
-max_dac_value = int(open("./max_dac_value.txt").read().replace('\n', ''))  # Maximum allowed value of the DAC.
+max_dac_value = int(open("/home/pi/FilamentController/max_dac_value.txt").read().replace('\n', ''))  # Maximum allowed value of the DAC.
 on_button_pressed = False # Whether the ON button was just pressed, either on the webpage or the physical buttons.
 off_button_pressed = False # Whether the OFF button was just pressed, either on the webpage or the physical buttons.
 computer_control = True # Whether the filament is currently being controlled by the Pi or by the manual knob.
